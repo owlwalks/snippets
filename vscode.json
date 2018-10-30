@@ -1,0 +1,7 @@
+{
+    "snippet-czip": {
+        "prefix": "czip",
+        "body": "func createZip(name string, files []string) error {\n\tzipFile, err := os.Create(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tzWriter := zip.NewWriter(zipFile)\n\n\tfor _, fName := range files {\n\t\tcontent, err := ioutil.ReadFile(fName)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tfWriter, err := zWriter.Create(fName)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\t_, err = fWriter.Write(content)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n\n\terr = zWriter.Close()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\treturn zipFile.Close()\n}",
+        "description": "Create zip file"
+    }
+}
