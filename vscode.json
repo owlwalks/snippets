@@ -3,5 +3,10 @@
         "prefix": "czip",
         "body": "func createZip(name string, files []string) error {\n\tzipFile, err := os.Create(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tzWriter := zip.NewWriter(zipFile)\n\n\tfor _, fName := range files {\n\t\tcontent, err := ioutil.ReadFile(fName)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tfWriter, err := zWriter.Create(fName)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\t_, err = fWriter.Write(content)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n\n\terr = zWriter.Close()\n\tif err != nil {\n\t\treturn err\n\t}\n\n\treturn zipFile.Close()\n}",
         "description": "Create zip file"
+    },
+    "snippet-ezip": {
+        "prefix": "ezip",
+        "body": "func extractZip(name string, extractTo string) error {\n\tzReader, err := zip.OpenReader(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tif err = os.MkdirAll(extractTo, os.ModePerm); err != nil {\n\t\treturn err\n\t}\n\n\tfor _, f := range zReader.File {\n\t\tdestpath := filepath.Join(extractTo, f.Name)\n\n\t\tif !strings.HasPrefix(destpath, filepath.Clean(extractTo)+string(os.PathSeparator)) {\n\t\t\treturn errors.New("zip slip")\n\t\t}\n\n\t\trc, err := f.Open()\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\n\t\tcontent, err := ioutil.ReadAll(rc)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\n\t\tif f.FileInfo().IsDir() {\n\t\t\tif err = os.MkdirAll(destpath, os.ModePerm); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t} else {\n\t\t\tif err = os.MkdirAll(filepath.Dir(destpath), os.ModePerm); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\textractedF, err := os.Create(destpath)\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\tif _, err = extractedF.Write(content); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\tif err = extractedF.Close(); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t}\n\t}\n\n\treturn zReader.Close()\n}",
+        "description": "Extract zip file"
     }
 }
