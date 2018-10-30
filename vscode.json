@@ -13,5 +13,10 @@
         "prefix": "ctar",
         "body": "func createTar(name string, files []string) error {\n\ttarFile, err := os.Create(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\n\ttWriter := tar.NewWriter(tarFile)\n\n\tfor _, fName := range files {\n\t\tcontent, err := ioutil.ReadFile(fName)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\n\t\thdr := &tar.Header{\n\t\t\tName: fName,\n\t\t\tMode: 0600,\n\t\t\tSize: int64(len(content)),\n\t\t}\n\t\tif err := tWriter.WriteHeader(hdr); err != nil {\n\t\t\treturn err\n\t\t}\n\n\t\tif _, err := tWriter.Write(content); err != nil {\n\t\t\treturn err\n\t\t}\n\t}\n\n\tif err = tWriter.Close(); err != nil {\n\t\treturn err\n\t}\n\n\treturn tarFile.Close()\n}",
         "description": "Create tar file"
+    },
+    "snippet-etar": {
+        "prefix": "etar",
+        "body": "func extractTar(name string, extractTo string) error {\n\ttarFile, err := os.Open(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\ttReader := tar.NewReader(tarFile)\n\n\tif err = os.MkdirAll(extractTo, os.ModePerm); err != nil {\n\t\treturn err\n\t}\n\n\tfor {\n\t\thdr, err := tReader.Next()\n\t\tif err == io.EOF {\n\t\t\tbreak\n\t\t}\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tdestpath := filepath.Join(extractTo, hdr.Name)\n\t\tif !strings.HasPrefix(destpath, filepath.Clean(extractTo)+string(os.PathSeparator)) {\n\t\t\treturn errors.New(\"zip slip\")\n\t\t}\n\n\t\tcontent, err := ioutil.ReadAll(tReader)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\n\t\tif hdr.FileInfo().IsDir() {\n\t\t\tif err = os.MkdirAll(destpath, os.ModePerm); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t} else {\n\t\t\tif err = os.MkdirAll(filepath.Dir(destpath), os.ModePerm); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\textractedF, err := os.Create(destpath)\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\tif _, err = extractedF.Write(content); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\tif err = extractedF.Close(); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t}\n\t}\n\n\treturn tarFile.Close()\n}",
+        "description": "Extract tar file"
     }
 }
