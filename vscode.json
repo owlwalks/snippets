@@ -18,5 +18,10 @@
         "prefix": "etar",
         "body": "func extractTar(name string, extractTo string) error {\n\ttarFile, err := os.Open(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\ttReader := tar.NewReader(tarFile)\n\n\tif err = os.MkdirAll(extractTo, os.ModePerm); err != nil {\n\t\treturn err\n\t}\n\n\tfor {\n\t\thdr, err := tReader.Next()\n\t\tif err == io.EOF {\n\t\t\tbreak\n\t\t}\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tdestpath := filepath.Join(extractTo, hdr.Name)\n\t\tif !strings.HasPrefix(destpath, filepath.Clean(extractTo)+string(os.PathSeparator)) {\n\t\t\treturn errors.New(\"zip slip\")\n\t\t}\n\n\t\tcontent, err := ioutil.ReadAll(tReader)\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\n\t\tif hdr.FileInfo().IsDir() {\n\t\t\tif err = os.MkdirAll(destpath, os.ModePerm); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t} else {\n\t\t\tif err = os.MkdirAll(filepath.Dir(destpath), os.ModePerm); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\textractedF, err := os.Create(destpath)\n\t\t\tif err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\tif _, err = extractedF.Write(content); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\n\t\t\tif err = extractedF.Close(); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t}\n\t}\n\n\treturn tarFile.Close()\n}",
         "description": "Extract tar file"
+    },
+    "snippet-esymmetric": {
+        "prefix": "esymmetric",
+        "body": "func encryptSymmetric(hashedPassword []byte, plaintext []byte) ([]byte, error) {\n\tblock, err := aes.NewCipher(hashedPassword)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tnonce := make([]byte, 12)\n\tif _, err := rand.Read(nonce); err != nil {\n\t\treturn nil, err\n\t}\n\n\taesgcm, err := cipher.NewGCM(block)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn aesgcm.Seal(nil, nonce, plaintext, nil), nil\n}",
+        "description": "Symmetric encryption"
     }
 }
