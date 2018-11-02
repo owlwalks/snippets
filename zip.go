@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
@@ -15,20 +14,27 @@ func createZip(name string, files []string) error {
 	if err != nil {
 		return err
 	}
+	defer zipFile.Close()
 
 	zWriter := zip.NewWriter(zipFile)
 
 	for _, fName := range files {
-		content, err := ioutil.ReadFile(fName)
+		reader, err := os.Open(fName)
 		if err != nil {
 			return err
 		}
-		fWriter, err := zWriter.Create(fName)
+
+		writer, err := zWriter.Create(fName)
 		if err != nil {
 			return err
 		}
-		_, err = fWriter.Write(content)
+
+		_, err = io.Copy(writer, reader)
 		if err != nil {
+			return err
+		}
+
+		if err = reader.Close(); err != nil {
 			return err
 		}
 	}
@@ -38,7 +44,7 @@ func createZip(name string, files []string) error {
 		return err
 	}
 
-	return zipFile.Close()
+	return nil
 }
 
 func extractZip(name string, extractTo string) error {
