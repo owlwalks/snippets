@@ -3,6 +3,7 @@ package snippets
 import (
 	"archive/zip"
 	"errors"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -45,6 +46,7 @@ func extractZip(name string, extractTo string) error {
 	if err != nil {
 		return err
 	}
+	defer zReader.Close()
 
 	if err = os.MkdirAll(extractTo, os.ModePerm); err != nil {
 		return err
@@ -58,11 +60,6 @@ func extractZip(name string, extractTo string) error {
 		}
 
 		rc, err := f.Open()
-		if err != nil {
-			return err
-		}
-
-		content, err := ioutil.ReadAll(rc)
 		if err != nil {
 			return err
 		}
@@ -81,7 +78,7 @@ func extractZip(name string, extractTo string) error {
 				return err
 			}
 
-			if _, err = extractedF.Write(content); err != nil {
+			if _, err = io.Copy(extractedF, rc); err != nil {
 				return err
 			}
 
@@ -89,7 +86,11 @@ func extractZip(name string, extractTo string) error {
 				return err
 			}
 		}
+
+		if err = rc.Close(); err != nil {
+			return err
+		}
 	}
 
-	return zReader.Close()
+	return nil
 }
