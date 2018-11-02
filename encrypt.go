@@ -4,6 +4,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"crypto/tls"
+	"crypto/x509"
+	"errors"
 )
 
 func encryptSymmetric(hashedPassword []byte, plaintext []byte) ([]byte, error) {
@@ -23,4 +26,15 @@ func encryptSymmetric(hashedPassword []byte, plaintext []byte) ([]byte, error) {
 	}
 
 	return aesgcm.Seal(nil, nonce, plaintext, nil), nil
+}
+
+func connectSelfSignedHost(selfSignedPEM []byte, addr string) (*tls.Conn, error) {
+	roots := x509.NewCertPool()
+
+	ok := roots.AppendCertsFromPEM([]byte(selfSignedPEM))
+	if !ok {
+		return nil, errors.New("append cert failed")
+	}
+
+	return tls.Dial("tcp", addr, &tls.Config{RootCAs: roots})
 }

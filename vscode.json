@@ -23,5 +23,10 @@
         "prefix": "esymmetric",
         "body": "func encryptSymmetric(hashedPassword []byte, plaintext []byte) ([]byte, error) {\n\tblock, err := aes.NewCipher(hashedPassword)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tnonce := make([]byte, 12)\n\tif _, err := rand.Read(nonce); err != nil {\n\t\treturn nil, err\n\t}\n\n\taesgcm, err := cipher.NewGCM(block)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn aesgcm.Seal(nil, nonce, plaintext, nil), nil\n}",
         "description": "Symmetric encryption"
+    },
+    "snippet-connselfsigned": {
+        "prefix": "connselfsigned",
+        "body": "func connectSelfSignedHost(selfSignedPEM []byte, addr string) (*tls.Conn, error) {\n\troots := x509.NewCertPool()\n\n\tok := roots.AppendCertsFromPEM([]byte(selfSignedPEM))\n\tif !ok {\n\t\treturn nil, errors.New(\"append cert failed\")\n\t}\n\n\treturn tls.Dial(\"tcp\", addr, &tls.Config{RootCAs: roots})\n}",
+        "description": "Connect self signed host"
     }
 }
