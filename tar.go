@@ -4,22 +4,27 @@ import (
 	"archive/tar"
 	"errors"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 )
 
 func createTar(name string, files []string) error {
-	tarFile, err := os.Create(name)
+	fWriter, err := os.Create(name)
 	if err != nil {
 		return err
 	}
+	defer fWriter.Close()
 
-	tWriter := tar.NewWriter(tarFile)
+	writer := tar.NewWriter(fWriter)
 
 	for _, fName := range files {
-		content, err := ioutil.ReadFile(fName)
+		reader, err := os.Open(fName)
+		if err != nil {
+			return err
+		}
+
+		stat, err := reader.Stat()
 		if err != nil {
 			return err
 		}
@@ -27,37 +32,43 @@ func createTar(name string, files []string) error {
 		hdr := &tar.Header{
 			Name: fName,
 			Mode: 0600,
-			Size: int64(len(content)),
+			Size: stat.Size(),
 		}
-		if err := tWriter.WriteHeader(hdr); err != nil {
+		if err := writer.WriteHeader(hdr); err != nil {
 			return err
 		}
 
-		if _, err := tWriter.Write(content); err != nil {
+		if _, err := io.Copy(writer, reader); err != nil {
+			return err
+		}
+
+		if err = reader.Close(); err != nil {
 			return err
 		}
 	}
 
-	if err = tWriter.Close(); err != nil {
+	if err = writer.Close(); err != nil {
 		return err
 	}
 
-	return tarFile.Close()
+	return nil
 }
 
 func extractTar(name string, extractTo string) error {
-	tarFile, err := os.Open(name)
+	fReader, err := os.Open(name)
 	if err != nil {
 		return err
 	}
-	tReader := tar.NewReader(tarFile)
+	defer fReader.Close()
+
+	reader := tar.NewReader(fReader)
 
 	if err = os.MkdirAll(extractTo, os.ModePerm); err != nil {
 		return err
 	}
 
 	for {
-		hdr, err := tReader.Next()
+		hdr, err := reader.Next()
 		if err == io.EOF {
 			break
 		}
@@ -69,11 +80,6 @@ func extractTar(name string, extractTo string) error {
 			return errors.New("zip slip")
 		}
 
-		content, err := ioutil.ReadAll(tReader)
-		if err != nil {
-			return err
-		}
-
 		if hdr.FileInfo().IsDir() {
 			if err = os.MkdirAll(destpath, os.ModePerm); err != nil {
 				return err
@@ -83,20 +89,20 @@ func extractTar(name string, extractTo string) error {
 				return err
 			}
 
-			extractedF, err := os.Create(destpath)
+			writer, err := os.Create(destpath)
 			if err != nil {
 				return err
 			}
 
-			if _, err = extractedF.Write(content); err != nil {
+			if _, err = io.Copy(writer, reader); err != nil {
 				return err
 			}
 
-			if err = extractedF.Close(); err != nil {
+			if err = writer.Close(); err != nil {
 				return err
 			}
 		}
 	}
 
-	return tarFile.Close()
+	return nil
 }
