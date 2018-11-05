@@ -38,7 +38,7 @@ func insertRows(ctx context.Context, db *sql.DB, rows []string) error {
 	}
 
 	for _, row := range rows {
-		_, err := stmt.Exec(row)
+		_, err := stmt.ExecContext(ctx, row)
 		if err != nil {
 			if err = tx.Rollback(); err != nil {
 				return err
