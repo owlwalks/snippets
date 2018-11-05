@@ -43,5 +43,10 @@
         "prefix": "cupsertrows",
         "body": "func upsertRows(ctx context.Context, db *sql.DB, rows []string) error {\n\ttx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tstmt, err := tx.PrepareContext(ctx, \"INSERT INTO users (name) VALUES (?) ON DUPLICATE KEY UPDATE name = ?\")\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tfor i := 0; i < len(rows); i++ {\n\t\t_, err := stmt.ExecContext(\n\t\t\tctx,\n\t\t\trows[i],\n\t\t\trows[i],\n\t\t)\n\t\tif err != nil {\n\t\t\tif errR := tx.Rollback(); errR != nil {\n\t\t\t\treturn errR\n\t\t\t}\n\t\t\treturn err\n\t\t}\n\t}\n\n\tif err = tx.Commit(); err != nil {\n\t\treturn err\n\t}\n\n\treturn nil\n}",
         "description": "Upsert rows with context"
+    },
+    "snippet-parsecsv": {
+        "prefix": "parsecsv",
+        "body": "func parseCSV(name string) (<-chan []string, error) {\n\tfile, err := os.Open(name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\treader := csv.NewReader(file)\n\tout := make(chan []string)\n\tgo func() {\n\t\tfor {\n\t\t\trecord, err := reader.Read()\n\t\t\tif err != nil {\n\t\t\t\tfile.Close()\n\t\t\t\tclose(out)\n\t\t\t\tbreak\n\t\t\t}\n\t\t\tout <- record\n\t\t}\n\t}()\n\n\treturn out, nil\n}",
+        "description": "Parse csv file"
     }
 }
