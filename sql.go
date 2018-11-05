@@ -26,22 +26,26 @@ func queryRow(ctx context.Context, db *sql.DB, id int) (string, error) {
 	return name, err
 }
 
-func insertRows(ctx context.Context, db *sql.DB, rows []string) error {
+func upsertRows(ctx context.Context, db *sql.DB, rows []string) error {
 	tx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})
 	if err != nil {
 		return err
 	}
 
-	stmt, err := tx.PrepareContext(ctx, "INSERT INTO users (name) VALUES (?)")
+	stmt, err := tx.PrepareContext(ctx, "INSERT INTO users (name) VALUES (?) ON DUPLICATE KEY UPDATE name = ?")
 	if err != nil {
 		return err
 	}
 
-	for _, row := range rows {
-		_, err := stmt.ExecContext(ctx, row)
+	for i := 0; i < len(rows); i++ {
+		_, err := stmt.ExecContext(
+			ctx,
+			rows[i],
+			rows[i],
+		)
 		if err != nil {
-			if err = tx.Rollback(); err != nil {
-				return err
+			if errR := tx.Rollback(); errR != nil {
+				return errR
 			}
 			return err
 		}

@@ -32,16 +32,16 @@
     "snippet-cquery": {
         "prefix": "cquery",
         "body": "func query(ctx context.Context, db *sql.DB, id int, limit int) ([]int64, error) {\n\trows, err := db.QueryContext(ctx, \"SELECT id FROM users WHERE id > ? LIMIT ?\", id, limit)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n\tresults := make([]int64, 0, limit)\n\tfor rows.Next() {\n\t\tvar id int64\n\t\trows.Scan(&id)\n\t\tresults = append(results, id)\n\t}\n\treturn results, nil\n}",
-        "description": "Context sql query"
+        "description": "Sql query with context"
     },
     "snippet-cqueryrow": {
         "prefix": "cqueryrow",
         "body": "func queryRow(ctx context.Context, db *sql.DB, id int) (string, error) {\n\tvar name string\n\terr := db.QueryRowContext(ctx, \"SELECT name FROM users WHERE id = ?\").Scan(&name)\n\treturn name, err\n}",
-        "description": "Context sql row query"
+        "description": "Sql row query with context"
     },
-    "snippet-cinsertsql": {
-        "prefix": "cinsertsql",
-        "body": "func insertRows(ctx context.Context, db *sql.DB, rows []string) error {\n\ttx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tstmt, err := tx.PrepareContext(ctx, \"INSERT INTO users (name) VALUES (?)\")\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tfor _, row := range rows {\n\t\t_, err := stmt.ExecContext(ctx, row)\n\t\tif err != nil {\n\t\t\tif err = tx.Rollback(); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t\treturn err\n\t\t}\n\t}\n\n\tif err = tx.Commit(); err != nil {\n\t\treturn err\n\t}\n\n\treturn nil\n}",
-        "description": "Context sql insert"
+    "snippet-cupsertrows": {
+        "prefix": "cupsertrows",
+        "body": "func upsertRows(ctx context.Context, db *sql.DB, rows []string) error {\n\ttx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tstmt, err := tx.PrepareContext(ctx, \"INSERT INTO users (name) VALUES (?) ON DUPLICATE KEY UPDATE name = ?\")\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tfor i := 0; i < len(rows); i++ {\n\t\t_, err := stmt.ExecContext(\n\t\t\tctx,\n\t\t\trows[i],\n\t\t\trows[i],\n\t\t)\n\t\tif err != nil {\n\t\t\tif errR := tx.Rollback(); errR != nil {\n\t\t\t\treturn errR\n\t\t\t}\n\t\t\treturn err\n\t\t}\n\t}\n\n\tif err = tx.Commit(); err != nil {\n\t\treturn err\n\t}\n\n\treturn nil\n}",
+        "description": "Upsert rows with context"
     }
 }
