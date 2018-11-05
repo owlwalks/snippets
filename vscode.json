@@ -28,5 +28,10 @@
         "prefix": "connselfsigned",
         "body": "func connectSelfSignedHost(selfSignedPEM []byte, addr string) (*tls.Conn, error) {\n\troots := x509.NewCertPool()\n\n\tok := roots.AppendCertsFromPEM([]byte(selfSignedPEM))\n\tif !ok {\n\t\treturn nil, errors.New(\"append cert failed\")\n\t}\n\n\treturn tls.Dial(\"tcp\", addr, &tls.Config{RootCAs: roots})\n}",
         "description": "Connect self signed host"
+    },
+    "snippet-cquery": {
+        "prefix": "cquery",
+        "body": "func query(ctx context.Context, db *sql.DB, id int, limit int) ([]int64, error) {\n\trows, err := db.QueryContext(ctx, \"SELECT id FROM users WHERE id > ? LIMIT ?\", id, limit)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n\tresults := make([]int64, 0, limit)\n\tfor rows.Next() {\n\t\tvar id int64\n\t\trows.Scan(&id)\n\t\tresults = append(results, id)\n\t}\n\treturn results, nil\n}",
+        "description": "Context sql query"
     }
 }
