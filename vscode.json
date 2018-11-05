@@ -38,5 +38,10 @@
         "prefix": "cqueryrow",
         "body": "func queryRow(ctx context.Context, db *sql.DB, id int) (string, error) {\n\tvar name string\n\terr := db.QueryRowContext(ctx, \"SELECT name FROM users WHERE id = ?\").Scan(&name)\n\treturn name, err\n}",
         "description": "Context sql row query"
+    },
+    "snippet-cinsertsql": {
+        "prefix": "cinsertsql",
+        "body": "func insertRows(ctx context.Context, db *sql.DB, rows []string) error {\n\ttx, err := db.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable})\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tstmt, err := tx.PrepareContext(ctx, \"INSERT INTO users (name) VALUES (?)\")\n\tif err != nil {\n\t\treturn err\n\t}\n\n\tfor _, row := range rows {\n\t\t_, err := stmt.Exec(row)\n\t\tif err != nil {\n\t\t\tif err = tx.Rollback(); err != nil {\n\t\t\t\treturn err\n\t\t\t}\n\t\t\treturn err\n\t\t}\n\t}\n\n\tif err = tx.Commit(); err != nil {\n\t\treturn err\n\t}\n\n\treturn nil\n}",
+        "description": "Context sql insert"
     }
 }
