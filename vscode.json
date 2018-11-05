@@ -48,5 +48,10 @@
         "prefix": "parsecsv",
         "body": "func parseCSV(name string) (<-chan []string, error) {\n\tfile, err := os.Open(name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\treader := csv.NewReader(file)\n\tout := make(chan []string)\n\tgo func() {\n\t\tfor {\n\t\t\trecord, err := reader.Read()\n\t\t\tif err != nil {\n\t\t\t\tfile.Close()\n\t\t\t\tclose(out)\n\t\t\t\tbreak\n\t\t\t}\n\t\t\tout <- record\n\t\t}\n\t}()\n\n\treturn out, nil\n}",
         "description": "Parse csv file"
+    },
+    "snippet-writecsv": {
+        "prefix": "writecsv",
+        "body": "func writeCsv(name string, rows <-chan []string) error {\n\tfWriter, err := os.Create(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer fWriter.Close()\n\n\twriter := csv.NewWriter(fWriter)\n\tfor row := range rows {\n\t\tif err := writer.Write(row); err != nil {\n\t\t\treturn err\n\t\t}\n\t\twriter.Flush()\n\t}\n\n\treturn nil\n}",
+        "description": "Write csv file"
     }
 }
