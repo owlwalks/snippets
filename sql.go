@@ -19,3 +19,9 @@ func query(ctx context.Context, db *sql.DB, id int, limit int) ([]int64, error) 
 	}
 	return results, nil
 }
+
+func queryRow(ctx context.Context, db *sql.DB, id int) (string, error) {
+	var name string
+	err := db.QueryRowContext(ctx, "SELECT name FROM users WHERE id = ?").Scan(&name)
+	return name, err
+}

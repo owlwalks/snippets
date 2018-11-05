@@ -33,5 +33,10 @@
         "prefix": "cquery",
         "body": "func query(ctx context.Context, db *sql.DB, id int, limit int) ([]int64, error) {\n\trows, err := db.QueryContext(ctx, \"SELECT id FROM users WHERE id > ? LIMIT ?\", id, limit)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer rows.Close()\n\tresults := make([]int64, 0, limit)\n\tfor rows.Next() {\n\t\tvar id int64\n\t\trows.Scan(&id)\n\t\tresults = append(results, id)\n\t}\n\treturn results, nil\n}",
         "description": "Context sql query"
+    },
+    "snippet-cqueryrow": {
+        "prefix": "cqueryrow",
+        "body": "func queryRow(ctx context.Context, db *sql.DB, id int) (string, error) {\n\tvar name string\n\terr := db.QueryRowContext(ctx, \"SELECT name FROM users WHERE id = ?\").Scan(&name)\n\treturn name, err\n}",
+        "description": "Context sql row query"
     }
 }
