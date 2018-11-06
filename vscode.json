@@ -58,5 +58,10 @@
         "prefix": "sendmultipart",
         "body": "func sendMultipart(url string, field string, name string) (*http.Response, error) {\n\tbuf := new(bytes.Buffer)\n\tmWriter := multipart.NewWriter(buf)\n\tfWriter, err := mWriter.CreateFormFile(field, name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tfile, err := os.Open(name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer file.Close()\n\n\tio.Copy(fWriter, file)\n\n\tif err = mWriter.Close(); err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn http.Post(url, mWriter.FormDataContentType(), buf)\n}",
         "description": "Send file in multipart"
+    },
+    "snippet-receivemultipart": {
+        "prefix": "receivemultipart",
+        "body": "func receiveMultipart(w http.ResponseWriter, r *http.Request) {\n\tr.ParseMultipartForm(32 << 20)\n\tfile, _, err := r.FormFile(\"upload\")\n\tif err != nil {\n\t\treturn\n\t}\n\tdefer file.Close()\n\n\ttmp, err := ioutil.TempFile(\"\", \"\")\n\tif err != nil {\n\t\treturn\n\t}\n\n\t_, err = io.Copy(tmp, file)\n\tif err != nil {\n\t\treturn\n\t}\n\n\tif err = tmp.Close(); err != nil {\n\t\treturn\n\t}\n}",
+        "description": "Receive file in multipart"
     }
 }
