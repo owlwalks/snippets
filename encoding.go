@@ -2,6 +2,8 @@ package snippets
 
 import (
 	"encoding/csv"
+	"encoding/xml"
+	"io/ioutil"
 	"os"
 )
 
@@ -44,4 +46,41 @@ func writeCsv(name string, rows <-chan []string) error {
 	}
 
 	return nil
+}
+
+func readXML(name string) (interface{}, error) {
+	// <?xml version="1.0" encoding="UTF-8"?>
+	// <Person>
+	// 	<FullName>Grace R. Emlin</FullName>
+	// 	<Email where="home">
+	// 		<Addr>gre@example.com</Addr>
+	// 	</Email>
+	// 	<Email where='work'>
+	// 		<Addr>gre@work.com</Addr>
+	// 	</Email>
+	// 	<Group>
+	// 		<Value>Friends</Value>
+	// 		<Value>Squash</Value>
+	// 	</Group>
+	// </Person>
+	content, err := ioutil.ReadFile(name)
+	if err != nil {
+		return nil, err
+	}
+
+	data := struct {
+		XMLName xml.Name `xml:"Person"`
+		Name    string   `xml:"FullName"`
+		Email   []struct {
+			Where string `xml:"where,attr"`
+			Addr  string
+		} `xml:"Email"`
+		Groups []string `xml:"Group>Value"`
+	}{}
+	err = xml.Unmarshal(content, &data)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
