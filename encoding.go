@@ -84,3 +84,28 @@ func readXML(name string) (interface{}, error) {
 
 	return data, nil
 }
+
+func writeXML(name string, data interface{}) error {
+	fWriter, err := os.Create(name)
+	if err != nil {
+		return err
+	}
+	defer fWriter.Close()
+
+	enc := xml.NewEncoder(fWriter)
+	enc.Indent("  ", "    ")
+	// type Person struct {
+	// 	XMLName   xml.Name `xml:"Person"`
+	// 	ID        int      `xml:"id,attr"`
+	// 	FirstName string   `xml:"Name>First"`
+	// 	LastName  string   `xml:"Name>Last"`
+	// 	Age       int      `xml:"Age"`
+	// 	Height    float32  `xml:"Height,omitempty"`
+	// 	Comment   string   `xml:",comment"`
+	// }
+	if err := enc.Encode(data); err != nil {
+		return err
+	}
+
+	return nil
+}
