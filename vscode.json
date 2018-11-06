@@ -53,5 +53,10 @@
         "prefix": "writecsv",
         "body": "func writeCsv(name string, rows <-chan []string) error {\n\tfWriter, err := os.Create(name)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer fWriter.Close()\n\n\twriter := csv.NewWriter(fWriter)\n\tfor row := range rows {\n\t\tif err := writer.Write(row); err != nil {\n\t\t\treturn err\n\t\t}\n\t\twriter.Flush()\n\t}\n\n\treturn nil\n}",
         "description": "Write csv file"
+    },
+    "snippet-sendmultipart": {
+        "prefix": "sendmultipart",
+        "body": "func sendMultipart(url string, field string, name string) (*http.Response, error) {\n\tbuf := new(bytes.Buffer)\n\tmWriter := multipart.NewWriter(buf)\n\tfWriter, err := mWriter.CreateFormFile(field, name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tfile, err := os.Open(name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer file.Close()\n\n\tio.Copy(fWriter, file)\n\n\tif err = mWriter.Close(); err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn http.Post(url, mWriter.FormDataContentType(), buf)\n}",
+        "description": "Send file in multipart"
     }
 }
