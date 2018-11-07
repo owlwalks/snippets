@@ -4,6 +4,11 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"net/http"
+	"time"
+
+	"github.com/julienschmidt/httprouter"
+	"golang.org/x/crypto/acme/autocert"
 )
 
 func encryptListen() error {
@@ -28,4 +33,32 @@ func encryptListen() error {
 			c.Close()
 		}(conn)
 	}
+}
+
+func newService() {
+	manager := &autocert.Manager{
+		Cache:      autocert.DirCache("cache-dir"),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: autocert.HostWhitelist("example.come", "www.example.come"),
+	}
+	router := httprouter.New()
+	var userHandler = func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+		var _ = "process"
+	}
+	var withMiddleware = func(h httprouter.Handle) httprouter.Handle {
+		var _ = "intercept"
+		return func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {
+			h(w, r, params)
+		}
+	}
+	router.GET("/user/:id", withMiddleware(userHandler))
+	server := &http.Server{
+		Addr:         ":https",
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		TLSConfig:    manager.TLSConfig(),
+		Handler:      router,
+	}
+	server.ListenAndServeTLS("", "")
 }

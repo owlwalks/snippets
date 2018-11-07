@@ -88,5 +88,10 @@
         "prefix": "pubstruct",
         "body": "func publicStruct() ([]byte, error) {\n\ttype omit *struct{}\n\ttype priv struct {\n\t\tPassword string `json:\"password\"`\n\t}\n\ttype pub struct {\n\t\t*priv\n\t\tPassword omit `json:\"password,omitempty\"`\n\t}\n\treturn json.Marshal(pub{priv: &priv{\"password\"}})\n}",
         "description": "Public struct with embedded private struct"
+    },
+    "snippet-newservice": {
+        "prefix": "newservice",
+        "body": "func newService() {\n\tmanager := &autocert.Manager{\n\t\tCache:      autocert.DirCache(\"cache-dir\"),\n\t\tPrompt:     autocert.AcceptTOS,\n\t\tHostPolicy: autocert.HostWhitelist(\"example.come\", \"www.example.come\"),\n\t}\n\trouter := httprouter.New()\n\tvar userHandler = func(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {\n\t\tvar _ = \"process\"\n\t}\n\tvar withMiddleware = func(h httprouter.Handle) httprouter.Handle {\n\t\tvar _ = \"intercept\"\n\t\treturn func(w http.ResponseWriter, r *http.Request, params httprouter.Params) {\n\t\t\th(w, r, params)\n\t\t}\n\t}\n\trouter.GET(\"/user/:id\", withMiddleware(userHandler))\n\tserver := &http.Server{\n\t\tAddr:         \":https\",\n\t\tReadTimeout:  5 * time.Second,\n\t\tWriteTimeout: 10 * time.Second,\n\t\tIdleTimeout:  120 * time.Second,\n\t\tTLSConfig:    manager.TLSConfig(),\n\t\tHandler:      router,\n\t}\n\tserver.ListenAndServeTLS(\"\", \"\")\n}",
+        "description": "Scaffold a service"
     }
 }
