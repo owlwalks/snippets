@@ -28,7 +28,7 @@ func encryptSymmetric(hashedPassword []byte, plaintext []byte) ([]byte, error) {
 	return aesgcm.Seal(nil, nonce, plaintext, nil), nil
 }
 
-func connectSelfSignedHost(selfSignedPEM []byte, addr string) (*tls.Conn, error) {
+func encryptConnect(selfSignedPEM []byte, addr string) (*tls.Conn, error) {
 	roots := x509.NewCertPool()
 
 	ok := roots.AppendCertsFromPEM([]byte(selfSignedPEM))

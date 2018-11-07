@@ -24,10 +24,10 @@
         "body": "func encryptSymmetric(hashedPassword []byte, plaintext []byte) ([]byte, error) {\n\tblock, err := aes.NewCipher(hashedPassword)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tnonce := make([]byte, 12)\n\tif _, err := rand.Read(nonce); err != nil {\n\t\treturn nil, err\n\t}\n\n\taesgcm, err := cipher.NewGCM(block)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn aesgcm.Seal(nil, nonce, plaintext, nil), nil\n}",
         "description": "Symmetric encryption"
     },
-    "snippet-connselfsigned": {
-        "prefix": "connselfsigned",
-        "body": "func connectSelfSignedHost(selfSignedPEM []byte, addr string) (*tls.Conn, error) {\n\troots := x509.NewCertPool()\n\n\tok := roots.AppendCertsFromPEM([]byte(selfSignedPEM))\n\tif !ok {\n\t\treturn nil, errors.New(\"append cert failed\")\n\t}\n\n\treturn tls.Dial(\"tcp\", addr, &tls.Config{RootCAs: roots})\n}",
-        "description": "Connect self signed host"
+    "snippet-encryptconn": {
+        "prefix": "encryptconn",
+        "body": "func encryptConnect(selfSignedPEM []byte, addr string) (*tls.Conn, error) {\n\troots := x509.NewCertPool()\n\n\tok := roots.AppendCertsFromPEM([]byte(selfSignedPEM))\n\tif !ok {\n\t\treturn nil, errors.New(\"append cert failed\")\n\t}\n\n\treturn tls.Dial(\"tcp\", addr, &tls.Config{RootCAs: roots})\n}",
+        "description": "Encrypt connect to server"
     },
     "snippet-cquery": {
         "prefix": "cquery",
@@ -73,5 +73,10 @@
         "prefix": "escapejs",
         "body": "func escapeJS(w io.Writer, b []byte) {\n\ttemplate.JSEscape(w, b)\n}",
         "description": "Escape JS"
+    },
+    "snippet-encryptlisten": {
+        "prefix": "encryptlisten",
+        "body": "func encryptListen() error {\n\tvar certPem, keyPem []byte\n\tcert, err := tls.X509KeyPair(certPem, keyPem)\n\tif err != nil {\n\t\treturn err\n\t}\n\tcfg := &tls.Config{Certificates: []tls.Certificate{cert}}\n\tl, err := tls.Listen(\"tcp\", \":2000\", cfg)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer l.Close()\n\tfor {\n\t\tconn, err := l.Accept()\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tgo func(c net.Conn) {\n\t\t\tio.Copy(c, c)\n\t\t\tc.Close()\n\t\t}(conn)\n\t}\n}",
+        "description": "Encrypt listen to client"
     }
 }
