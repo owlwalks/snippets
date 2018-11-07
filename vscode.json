@@ -78,5 +78,10 @@
         "prefix": "encryptlisten",
         "body": "func encryptListen() error {\n\tvar certPem, keyPem []byte\n\tcert, err := tls.X509KeyPair(certPem, keyPem)\n\tif err != nil {\n\t\treturn err\n\t}\n\tcfg := &tls.Config{Certificates: []tls.Certificate{cert}}\n\tl, err := tls.Listen(\"tcp\", \":2000\", cfg)\n\tif err != nil {\n\t\treturn err\n\t}\n\tdefer l.Close()\n\tfor {\n\t\tconn, err := l.Accept()\n\t\tif err != nil {\n\t\t\treturn err\n\t\t}\n\t\tgo func(c net.Conn) {\n\t\t\tio.Copy(c, c)\n\t\t\tc.Close()\n\t\t}(conn)\n\t}\n}",
         "description": "Encrypt listen to client"
+    },
+    "snippet-get": {
+        "prefix": "get",
+        "body": "res, err := http.Get(\"http://example.com\")\nif res != nil {\n\tdefer res.Body.Close()\n}\nif err != nil {\n\treturn err\n}\nbody, err := ioutil.ReadAll(res.Body)\nif err != nil {\n\treturn err\n}",
+        "description": "send GET"
     }
 }
