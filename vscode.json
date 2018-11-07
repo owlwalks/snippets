@@ -63,5 +63,15 @@
         "prefix": "receivemultipart",
         "body": "func receiveMultipart(w http.ResponseWriter, r *http.Request) {\n\tr.ParseMultipartForm(32 << 20)\n\tfile, _, err := r.FormFile(\"upload\")\n\tif err != nil {\n\t\treturn\n\t}\n\tdefer file.Close()\n\n\ttmp, err := ioutil.TempFile(\"\", \"\")\n\tif err != nil {\n\t\treturn\n\t}\n\n\t_, err = io.Copy(tmp, file)\n\tif err != nil {\n\t\treturn\n\t}\n\n\tif err = tmp.Close(); err != nil {\n\t\treturn\n\t}\n}",
         "description": "Receive file in multipart"
+    },
+    "snippet-escapehtml": {
+        "prefix": "escapehtml",
+        "body": "func escapeHTML(w io.Writer, b []byte) {\n\ttemplate.HTMLEscape(w, b)\n}",
+        "description": "Escape HTML"
+    },
+    "snippet-escapejs": {
+        "prefix": "escapejs",
+        "body": "func escapeJS(w io.Writer, b []byte) {\n\ttemplate.JSEscape(w, b)\n}",
+        "description": "Escape JS"
     }
 }
