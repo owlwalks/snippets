@@ -83,5 +83,10 @@
         "prefix": "get",
         "body": "res, err := http.Get(\"http://example.com\")\nif res != nil {\n\tdefer res.Body.Close()\n}\nif err != nil {\n\treturn err\n}\nbody, err := ioutil.ReadAll(res.Body)\nif err != nil {\n\treturn err\n}",
         "description": "send GET"
+    },
+    "snippet-pubstruct": {
+        "prefix": "pubstruct",
+        "body": "func publicStruct() ([]byte, error) {\n\ttype omit *struct{}\n\ttype priv struct {\n\t\tPassword string `json:\"password\"`\n\t}\n\ttype pub struct {\n\t\t*priv\n\t\tPassword omit `json:\"password,omitempty\"`\n\t}\n\treturn json.Marshal(pub{priv: &priv{\"password\"}})\n}",
+        "description": "Public struct with embedded private struct"
     }
 }
