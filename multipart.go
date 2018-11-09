@@ -1,12 +1,14 @@
 package snippets
 
 import (
+	"bufio"
 	"bytes"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 func sendMultipart(url string, field string, name string) (*http.Response, error) {
@@ -39,6 +41,13 @@ func receiveMultipart(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+
+	reader := bufio.NewReader(file)
+	b, _ := reader.Peek(512)
+	contentType := http.DetectContentType(b)
+	if !strings.HasPrefix(contentType, "image") {
+		return
+	}
 
 	tmp, err := ioutil.TempFile("", "")
 	if err != nil {
