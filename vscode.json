@@ -61,7 +61,7 @@
     },
     "snippet-receivemultipart": {
         "prefix": "receivemultipart",
-        "body": "func receiveMultipart(w http.ResponseWriter, r *http.Request) {\n\tr.ParseMultipartForm(32 << 20)\n\tfile, _, err := r.FormFile(\"upload\")\n\tif err != nil {\n\t\treturn\n\t}\n\tdefer file.Close()\n\n\ttmp, err := ioutil.TempFile(\"\", \"\")\n\tif err != nil {\n\t\treturn\n\t}\n\n\t_, err = io.Copy(tmp, file)\n\tif err != nil {\n\t\treturn\n\t}\n\n\tif err = tmp.Close(); err != nil {\n\t\treturn\n\t}\n}",
+        "body": "func receiveMultipart(w http.ResponseWriter, r *http.Request) {\n\tr.ParseMultipartForm(32 << 20)\n\tfile, _, err := r.FormFile(\"upload\")\n\tif err != nil {\n\t\treturn\n\t}\n\tdefer file.Close()\n\n\treader := bufio.NewReader(file)\n\tb, _ := reader.Peek(512)\n\tcontentType := http.DetectContentType(b)\n\tif !strings.HasPrefix(contentType, \"image\") {\n\t\treturn\n\t}\n\n\ttmp, err := ioutil.TempFile(\"\", \"\")\n\tif err != nil {\n\t\treturn\n\t}\n\n\t_, err = io.Copy(tmp, file)\n\tif err != nil {\n\t\treturn\n\t}\n\n\tif err = tmp.Close(); err != nil {\n\t\treturn\n\t}\n}",
         "description": "Receive file in multipart"
     },
     "snippet-escapehtml": {
