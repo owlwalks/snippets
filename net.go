@@ -2,9 +2,11 @@ package snippets
 
 import (
 	"crypto/tls"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
+	"net/http/httptrace"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -61,4 +63,16 @@ func newService() {
 		Handler:      router,
 	}
 	server.ListenAndServeTLS("", "")
+}
+
+func withTrace(req *http.Request) *http.Request {
+	trace := &httptrace.ClientTrace{
+		GotConn: func(connInfo httptrace.GotConnInfo) {
+			fmt.Printf("Got Conn: %+v\n", connInfo)
+		},
+		DNSDone: func(dnsInfo httptrace.DNSDoneInfo) {
+			fmt.Printf("DNS Info: %+v\n", dnsInfo)
+		},
+	}
+	return req.WithContext(httptrace.WithClientTrace(req.Context(), trace))
 }
