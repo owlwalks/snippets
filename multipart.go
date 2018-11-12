@@ -2,7 +2,6 @@ package snippets
 
 import (
 	"bufio"
-	"bytes"
 	"io"
 	"io/ioutil"
 	"mime/multipart"
@@ -12,26 +11,30 @@ import (
 )
 
 func sendMultipart(url string, field string, name string) (*http.Response, error) {
-	buf := new(bytes.Buffer)
-	mWriter := multipart.NewWriter(buf)
-	fWriter, err := mWriter.CreateFormFile(field, name)
-	if err != nil {
-		return nil, err
-	}
+	r, w := io.Pipe()
+	mWriter := multipart.NewWriter(w)
 
-	file, err := os.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
+	go func() {
+		defer w.Close()
+		defer mWriter.Close()
 
-	io.Copy(fWriter, file)
+		fWriter, err := mWriter.CreateFormFile(field, name)
+		if err != nil {
+			return
+		}
 
-	if err = mWriter.Close(); err != nil {
-		return nil, err
-	}
+		file, err := os.Open(name)
+		if err != nil {
+			return
+		}
+		defer file.Close()
 
-	return http.Post(url, mWriter.FormDataContentType(), buf)
+		if _, err = io.Copy(fWriter, file); err != nil {
+			return
+		}
+	}()
+
+	return http.Post(url, mWriter.FormDataContentType(), r)
 }
 
 func receiveMultipart(w http.ResponseWriter, r *http.Request) {

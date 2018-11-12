@@ -56,7 +56,7 @@
     },
     "snippet-sendmultipart": {
         "prefix": "sendmultipart",
-        "body": "func sendMultipart(url string, field string, name string) (*http.Response, error) {\n\tbuf := new(bytes.Buffer)\n\tmWriter := multipart.NewWriter(buf)\n\tfWriter, err := mWriter.CreateFormFile(field, name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\n\tfile, err := os.Open(name)\n\tif err != nil {\n\t\treturn nil, err\n\t}\n\tdefer file.Close()\n\n\tio.Copy(fWriter, file)\n\n\tif err = mWriter.Close(); err != nil {\n\t\treturn nil, err\n\t}\n\n\treturn http.Post(url, mWriter.FormDataContentType(), buf)\n}",
+        "body": "func sendMultipart(url string, field string, name string) (*http.Response, error) {\n\tr, w := io.Pipe()\n\tmWriter := multipart.NewWriter(w)\n\n\tgo func() {\n\t\tdefer w.Close()\n\t\tdefer mWriter.Close()\n\n\t\tfWriter, err := mWriter.CreateFormFile(field, name)\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\n\t\tfile, err := os.Open(name)\n\t\tif err != nil {\n\t\t\treturn\n\t\t}\n\t\tdefer file.Close()\n\n\t\tif _, err = io.Copy(fWriter, file); err != nil {\n\t\t\treturn\n\t\t}\n\t}()\n\n\treturn http.Post(url, mWriter.FormDataContentType(), r)\n}",
         "description": "Send file in multipart"
     },
     "snippet-receivemultipart": {
