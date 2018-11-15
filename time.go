@@ -26,3 +26,11 @@ func parseJsDt(t string) (time.Time, error) {
 	}
 	return pt.UTC(), nil
 }
+
+func parseMysqlDt(t string) (time.Time, error) {
+	pt, err := time.Parse("2006-01-02 15:04:05", t)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return pt.UTC(), nil
+}
