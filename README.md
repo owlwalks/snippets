@@ -1,5 +1,5 @@
-# Golang productivity snippets
-> Snip everything that make you code quicker, snippets extracted using [this awesome generator][app].
+# Golang best practice snippets
+> Snip everything that make you code better, snippets extracted using [this awesome generator][app].
 
 ## Usage
 
