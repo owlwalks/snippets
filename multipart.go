@@ -7,7 +7,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"strings"
 )
 
 func sendMultipart(url string, field string, name string) (*http.Response, error) {
@@ -38,31 +37,58 @@ func sendMultipart(url string, field string, name string) (*http.Response, error
 }
 
 func receiveMultipart(w http.ResponseWriter, r *http.Request) {
-	r.ParseMultipartForm(32 << 20)
-	file, _, err := r.FormFile("upload")
+	reader, err := r.MultipartReader()
 	if err != nil {
-		return
-	}
-	defer file.Close()
-
-	reader := bufio.NewReader(file)
-	b, _ := reader.Peek(512)
-	contentType := http.DetectContentType(b)
-	if !strings.HasPrefix(contentType, "image") {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	tmp, err := ioutil.TempFile("", "")
-	if err != nil {
-		return
-	}
+	for {
+		p, err := reader.NextPart()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 
-	_, err = io.Copy(tmp, file)
-	if err != nil {
-		return
-	}
+		if p.FormName() != "field_name" {
+			continue
+		}
 
-	if err = tmp.Close(); err != nil {
-		return
+		buf := bufio.NewReader(p)
+		sniff, err := buf.Peek(512)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		contentType := http.DetectContentType(sniff)
+		if contentType != "application/zip" {
+			http.Error(w, "file type not allowed", http.StatusBadRequest)
+			return
+		}
+
+		f, err := ioutil.TempFile("", "")
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer f.Close()
+
+		var maxSize int64 = 32 << 20
+		lmt := io.LimitReader(p, maxSize+1)
+		written, err := io.Copy(f, lmt)
+		if err != nil && err != io.EOF {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		if written > maxSize {
+			os.Remove(f.Name())
+			http.Error(w, "file size over limit", http.StatusBadRequest)
+			return
+		}
+		// notice if f gets here then it is still in tmp, should move it to your persistent dir
 	}
 }
